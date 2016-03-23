@@ -119,7 +119,7 @@ class Riskified_Full_Model_Observer
             $order->riskifiedInSave = true;
 
             try {
-                if($order->dataHasChangedFor('state') == Mage_Sales_Model_Order::ACTION_FLAG_CANCEL) {
+                if($order->getState() == Mage_Sales_Model_Order::ACTION_FLAG_CANCEL) {
                     Mage::helper('full/order')->postOrder($order, Riskified_Full_Helper_Order::ACTION_CANCEL);
                 } else {
                     Mage::helper('full/order')->postOrder($order, Riskified_Full_Helper_Order::ACTION_UPDATE);
