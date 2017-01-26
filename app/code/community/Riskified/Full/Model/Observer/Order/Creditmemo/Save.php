@@ -21,45 +21,13 @@ class Riskified_Full_Model_Observer_Order_Creditmemo_Save
     ) {
         $creditmemo = $observer->getEvent()->getCreditmemo();
 
-        $reason = '';
-        $commentsCollection = $creditmemo->getCommentsCollection();
-        foreach ($commentsCollection as $commentModel) {
-            $comment = trim($commentModel->getComment());
-            $comment = ucfirst($comment);
-            if (substr($comment, -1) !== '.') {
-                $comment .= '.';
-            }
+        /**
+         * @var Riskified_Full_Helper_Order $orderHelper
+        */
+        $orderHelper = Mage::helper("full/order");
 
-            $reason .= $comment . ' ';
-        }
-        $reason = trim($reason);
-
-        $payload = array(
-            'id' => (int)$creditmemo->getOrderId(),
-            'refunds' => array(
-                array(
-                    'refund_id' => $creditmemo->getId(),
-                    'amount' => $creditmemo->getGrandTotal(),
-                    'refunded_at' => Mage::helper('full')->getDateTime(
-                        $creditmemo->getCreatedAt()
-                    ),
-                    'currency' => $creditmemo->getOrderCurrencyCode(),
-                    'reason' => $reason,
-                ),
-            ),
-        );
-
-        unset(
-            $comment,
-            $commentModel,
-            $commentsCollection,
+        $orderHelper->postOrder(
             $creditmemo,
-            $reason
-        );
-
-        $helper = Mage::helper('full/order');
-        $helper->postOrder(
-            $payload,
             Riskified_Full_Helper_Order::ACTION_REFUND
         );
 

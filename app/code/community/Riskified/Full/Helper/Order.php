@@ -104,7 +104,10 @@ class Riskified_Full_Helper_Order extends Mage_Core_Helper_Abstract
                     $response = $transport->cancelOrder($orderForTransport);
                     break;
                 case self::ACTION_REFUND:
-                    $orderForTransport = new Model\Refund($order);
+                    $payload = $this->prepareRefund($order);
+                    $order = $order->getOrder();
+                    $eventData['order'] = $order;
+                    $orderForTransport = new Model\Refund($payload);
                     $response = $transport->refundOrder($orderForTransport);
                     break;
                 case self::ACTION_CHECKOUT_CREATE:
@@ -296,6 +299,57 @@ class Riskified_Full_Helper_Order extends Mage_Core_Helper_Abstract
         Mage::helper('full/log')->log("getOrderCancellation(): " . PHP_EOL . json_encode(json_decode($orderCancellation->toJson())));
 
         return $orderCancellation;
+    }
+
+    /**
+     * Format data needed for post refund request
+     * @param Mage_Sales_Model_Order_Creditmemo $creditmemo
+     *
+     * @return array
+     */
+    protected function prepareRefund($creditmemo)
+    {
+        $reason = '';
+        $commentsCollection = $creditmemo->getCommentsCollection();
+        foreach ($commentsCollection as $commentModel) {
+            $comment = trim($commentModel->getComment());
+            $comment = ucfirst($comment);
+            if (substr($comment, -1) !== '.') {
+                $comment .= '.';
+            }
+
+            $reason .= $comment . ' ';
+        }
+        $reason = trim($reason);
+
+        $riskifiedOrderId = $this->getOrderOrigId(
+            $creditmemo->getOrder()
+        );
+
+        $payload = array(
+            'id' => $riskifiedOrderId,
+            'refunds' => array(
+                array(
+                    'refund_id' => $creditmemo->getId(),
+                    'amount' => $creditmemo->getGrandTotal(),
+                    'refunded_at' => Mage::helper('full')->getDateTime(
+                        $creditmemo->getCreatedAt()
+                    ),
+                    'currency' => $creditmemo->getOrderCurrencyCode(),
+                    'reason' => $reason,
+                ),
+            ),
+        );
+
+        unset(
+            $comment,
+            $commentModel,
+            $commentsCollection,
+            $creditmemo,
+            $reason
+        );
+
+        return $payload;
     }
 
     private function getOrder($model)
