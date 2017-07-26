@@ -8,7 +8,15 @@ class Riskified_Full_Model_Observer_Order_Shipment_Save
         $shipment = $observer->getEvent()->getShipment();
 
         $order = $shipment->getOrder();
+
+        if (!Mage::registry("riskified-order")) {
+            Mage::register("riskified-order", $order);
+        }
+
         $helper = Mage::helper('full/order');
+
+        Mage::unregister("riskified-order");
+
         try {
             $helper->postOrder(
                 $order,

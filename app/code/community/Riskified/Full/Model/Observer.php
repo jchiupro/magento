@@ -67,7 +67,15 @@ class Riskified_Full_Model_Observer
     {
         Mage::helper('full/log')->log("salesOrderPaymentVoid");
         $order = $evt->getPayment()->getOrder();
+
+        if (!Mage::registry("riskified-order")) {
+            Mage::register("riskified-order", $order);
+        }
+
         Mage::helper('full/order')->postOrder($order, 'cancel');
+
+        Mage::unregister("riskified-order");
+
     }
 
     public function salesOrderPaymentRefund($evt)
@@ -81,7 +89,14 @@ class Riskified_Full_Model_Observer
     {
         Mage::helper('full/log')->log("salesOrderPaymentCancel");
         $order = $evt->getPayment()->getOrder();
+
+        if (!Mage::registry("riskified-order")) {
+            Mage::register("riskified-order", $order);
+        }
+
         Mage::helper('full/order')->postOrder($order, 'cancel');
+
+        Mage::unregister("riskified-order");
     }
 
     public function salesOrderPlaceBefore($evt)
@@ -152,7 +167,14 @@ class Riskified_Full_Model_Observer
         // TODO not sure if this is still required - saveAfter should be enough
 
         try {
+
+            if (!Mage::registry("riskified-order")) {
+                Mage::register("riskified-order", $order);
+            }
+
             Mage::helper('full/order')->postOrder($order, Riskified_Full_Helper_Order::ACTION_CANCEL);
+
+            Mage::unregister("riskified-order");
         } catch (Exception $e) {
             // There is no need to do anything here.  The exception has already been handled and a retry scheduled.
             // We catch this exception so that the order is still saved in Magento.

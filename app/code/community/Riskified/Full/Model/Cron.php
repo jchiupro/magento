@@ -70,8 +70,14 @@ class Riskified_Full_Model_Cron
                 Mage::helper('full/log')->log("Retrying order " . $order->getId());
 
                 try {
+
+                    if (!Mage::registry("riskified-order")) {
+                        Mage::register("riskified-order", $order);
+                    }
+
                     Mage::helper('full/order')->postOrder($order, $mapperOrder[$order->getId()]->getAction());
 
+                    Mage::unregister("riskified-order");
                     // There is no need to delete the retry here.  postOrder() dispatches a success event which
                     // results in all retries for this order getting deleted.
                 } // Log the exception, store the backtrace and increment the counter

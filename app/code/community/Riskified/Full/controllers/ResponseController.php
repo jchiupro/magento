@@ -6,14 +6,14 @@ class Riskified_Full_ResponseController extends Mage_Core_Controller_Front_Actio
     {
         $request = $this->getRequest();
         $response = $this->getResponse();
-        $helper = Mage::helper('full/order');
+        $responseHelper = Mage::helper('full/response');
         $logger = Mage::helper('full/log');
         $statusCode = 200;
         $id = null;
         $msg = null;
 
         try {
-            $notification = $helper->parseRequest($request);
+            $notification = $responseHelper->parse($request);
             $id = $notification->id;
             if ($notification->status == 'test' && $id == 0) {
                 $statusCode = 200;
@@ -27,6 +27,15 @@ class Riskified_Full_ResponseController extends Mage_Core_Controller_Front_Actio
                 Mage::helper('full/log')->log("Notification received: ", serialize($notification));
 
                 $order = $this->loadOrderByOrigId($id);
+
+                if (!Mage::registry("riskified-order")) {
+                    Mage::register("riskified-order", $order);
+                }
+
+                $helper = Mage::helper("full/order");
+
+                Mage::unregister("riskified-order");
+
                 if (!$order || !$order->getId()) {
                     $logger->log("ERROR: Unable to load order (" . $id . ")");
                     $statusCode = 400;

@@ -49,6 +49,10 @@ class Riskified_Full_Model_Observer_Order_Creditmemo_Save
             ),
         );
 
+        if (!Mage::registry("riskified-order")) {
+            Mage::register("riskified-order", $creditmemo->getOrder());
+        }
+
         unset(
             $comment,
             $commentModel,
@@ -56,8 +60,10 @@ class Riskified_Full_Model_Observer_Order_Creditmemo_Save
             $creditmemo,
             $reason
         );
-
         $helper = Mage::helper('full/order');
+
+        Mage::unregister("riskified-order");
+
         try {
             $helper->postOrder(
                 $payload,

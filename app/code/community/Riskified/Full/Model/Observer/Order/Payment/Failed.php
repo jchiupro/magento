@@ -21,7 +21,14 @@ class Riskified_Full_Model_Observer_Order_Payment_Failed
     ) {
         $order = $observer->getEvent()->getOrder();
 
-        $helper = Mage::helper('full/order');
+        if (!Mage::registry("riskified-order")) {
+            Mage::register("riskified-order", $order);
+        }
+
+        $helper = Mage::helper("full/order");
+
+        Mage::unregister("riskified-order");
+
         $helper->postOrder(
             $order,
             Riskified_Full_Helper_Order::ACTION_CHECKOUT_DENIED
