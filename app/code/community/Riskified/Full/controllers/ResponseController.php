@@ -6,6 +6,7 @@ class Riskified_Full_ResponseController extends Mage_Core_Controller_Front_Actio
     {
         $request = $this->getRequest();
         $response = $this->getResponse();
+        $helper = Mage::helper("full/order");
         $responseHelper = Mage::helper('full/response');
         $logger = Mage::helper('full/log');
         $statusCode = 200;
@@ -32,7 +33,6 @@ class Riskified_Full_ResponseController extends Mage_Core_Controller_Front_Actio
                     Mage::register("riskified-order", $order);
                 }
 
-                $helper = Mage::helper("full/order");
 
                 Mage::unregister("riskified-order");
 
