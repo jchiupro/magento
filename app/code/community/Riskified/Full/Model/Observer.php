@@ -147,7 +147,10 @@ class Riskified_Full_Model_Observer
                 if(!Mage::registry("riskified-order")) {
                     Mage::register("riskified-order", $order);
                 }
-                Mage::helper('full/order')->postOrder($order, Riskified_Full_Helper_Order::ACTION_UPDATE);
+                
+                $helper = new Riskified_Full_Helper_Order();
+                $helper->postOrder($order, Riskified_Full_Helper_Order::ACTION_UPDATE);
+
                 Mage::unregister("riskified-order");
             } catch (Exception $e) {
                 // There is no need to do anything here.  The exception has already been handled and a retry scheduled.
@@ -188,7 +191,14 @@ class Riskified_Full_Model_Observer
 
         foreach ($collection as $order) {
             try {
-                Mage::helper('full/order')->postOrder($order, Riskified_Full_Helper_Order::ACTION_SUBMIT);
+                if (!Mage::registry("riskified-order")) {
+                    Mage::register("riskified-order", $order);
+                }
+
+                $helper = new Riskified_Full_Helper_Order();
+                $helper->postOrder($order, Riskified_Full_Helper_Order::ACTION_SUBMIT);
+
+                Mage::unregister("riskified-order");
             } catch (Exception $e) {
                 // There is no need to do anything here.  The exception has already been handled and a retry scheduled.
                 // We catch this exception so that the order is still saved in Magento.
