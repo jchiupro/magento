@@ -173,19 +173,36 @@ class Riskified_Full_Helper_Order extends Mage_Core_Helper_Abstract
         return $response;
     }
 
-    public function postHistoricalOrders($models)
+     public function postHistoricalOrders($models)
     {
         $orders = array();
         foreach ($models as $model) {
             $order = $this->getOrder($model);
+            $s_id=$model->getStoreId();
             Mage::getModel('full/sent')->setOrderId($model->getId())->save();
-            $orders[] = $order;
+            $orders[$s_id][] = $order;
+        } 
+
+   		$msgs = array();
+   		
+   		foreach ($orders as $key => $store_orders) {
+   		  if($key>=0 && $key!=''){
+   		    Mage::app()->setCurrentStore($key);
+   		    $this->initSdk();
+   		  }
+   		  
+          $msgs[] = $this->getTransport()->sendHistoricalOrders($store_orders);
+          
         }
-
-        $msgs = $this->getTransport()->sendHistoricalOrders($orders);
-        return "Successfully uploaded " . count($msgs) . " orders." . PHP_EOL;
+        
+          $message = '';
+          
+        foreach ($msgs as $msg) {
+          $message .= "Successfully uploaded " . count($msg) . " orders." . PHP_EOL;
+        }
+        
+        return  $message;
     }
-
     /**
      * Dispatch events for order update handling
      *
